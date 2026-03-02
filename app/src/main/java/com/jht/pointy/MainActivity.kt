@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.jht.pointy.ui.LoginScreen
 import com.jht.pointy.ui.ScanScreen // Assure-toi de l'importer
 import com.jht.pointy.ui.theme.PointyTheme
+import com.jht.pointy.ui.dashboard.DashboardScreen
 import com.jht.pointy.ui.viewModel.ScanViewModel
 
 class MainActivity : ComponentActivity() {
@@ -120,20 +121,22 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                     )
                 }
             }
-        ) {
-            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                    when (currentDestination) {
-                        AppDestinations.COURS -> {
-                            PlaceholderScreen("Liste de vos cours")
-                        }
-                        AppDestinations.ELEVES -> {
-                            // On affiche le vrai écran de scan ici !
-                            ScanScreen(viewModel = scanViewModel)
-                        }
-                        AppDestinations.PROFIL -> {
-                            PlaceholderScreen("Paramètres du professeur")
-                        }
+        }
+    ) {
+        // Le contenu de l'écran change ici en fonction de la destination
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                when (currentDestination) {
+                    AppDestinations.COURS -> {
+                        DashboardScreen()
+                    }
+                    AppDestinations.ELEVES -> {
+                        // TODO: Remplacer par StudentListScreen()
+                        PlaceholderScreen("Gestion des élèves & NFC")
+                    }
+                    AppDestinations.PROFIL -> {
+                        // TODO: Remplacer par ProfileScreen()
+                        PlaceholderScreen("Paramètres du professeur")
                     }
                 }
             }

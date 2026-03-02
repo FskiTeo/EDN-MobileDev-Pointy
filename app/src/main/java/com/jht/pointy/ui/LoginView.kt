@@ -13,8 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel // L'import qui manquait
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jht.pointy.state.LoginState
 import com.jht.pointy.ui.viewModel.LoginViewModel
 
@@ -73,7 +72,6 @@ fun LoginScreen(
             enabled = uiState !is LoginState.Loading
         )
 
-        // Message d'erreur dynamique
         if (uiState is LoginState.Error) {
             Text(
                 text = (uiState as LoginState.Error).message,

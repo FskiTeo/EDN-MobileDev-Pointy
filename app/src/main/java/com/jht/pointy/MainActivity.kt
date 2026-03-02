@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.jht.pointy.ui.theme.PointyTheme
+import com.jht.pointy.ui.dashboard.DashboardScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,8 +65,7 @@ fun PointyApp() {
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 when (currentDestination) {
                     AppDestinations.COURS -> {
-                        // TODO: Remplacer par CourseListScreen()
-                        PlaceholderScreen("Liste de vos cours")
+                        DashboardScreen()
                     }
                     AppDestinations.ELEVES -> {
                         // TODO: Remplacer par StudentListScreen()

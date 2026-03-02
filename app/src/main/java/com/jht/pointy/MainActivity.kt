@@ -1,9 +1,16 @@
 package com.jht.pointy
 
+import android.app.PendingIntent
+import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,39 +31,95 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.jht.pointy.ui.LoginScreen
+import com.jht.pointy.ui.ScanScreen // Assure-toi de l'importer
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.dashboard.DashboardScreen
+import com.jht.pointy.ui.viewModel.ScanViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private var nfcAdapter: NfcAdapter? = null
+    private var pendingIntent: PendingIntent? = null
+
+    // Utilisation du ViewModel partagé
+    private val scanViewModel by viewModels<ScanViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+
+        val intent = Intent(this, javaClass).apply {
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_MUTABLE
+        )
+
         enableEdgeToEdge()
         setContent {
             PointyTheme {
-                PointyApp()
+                // On passe le ViewModel à l'application
+                PointyApp(scanViewModel)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableForegroundDispatch(this)
+    }
+
+    // UNE SEULE fonction onNewIntent pour tout gérer
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (NfcAdapter.ACTION_TAG_DISCOVERED == intent.action ||
+            NfcAdapter.ACTION_TECH_DISCOVERED == intent.action ||
+            NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
+
+            val tag: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            tag?.let {
+                val hexId = it.id.joinToString(":") { byte -> "%02X".format(byte) }
+
+                // Mise à jour du ViewModel
+                scanViewModel.onCardScanned(hexId)
+
+                Log.d("NFC_SCAN", "Carte détectée : $hexId")
+                Toast.makeText(this, "Carte détectée : $hexId", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
 
 @Composable
-fun PointyApp() {
+fun PointyApp(scanViewModel: ScanViewModel) {
+    var isLoggedIn by rememberSaveable { mutableStateOf(false) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach { destination ->
-                item(
-                    icon = {
-                        Icon(
-                            imageVector = destination.icon,
-                            contentDescription = destination.label
-                        )
-                    },
-                    label = { Text(destination.label) },
-                    selected = destination == currentDestination,
-                    onClick = { currentDestination = destination }
-                )
+    if (!isLoggedIn) {
+        LoginScreen(onLoginSuccess = { isLoggedIn = true })
+    } else {
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                AppDestinations.entries.forEach { destination ->
+                    item(
+                        icon = {
+                            Icon(
+                                imageVector = destination.icon,
+                                contentDescription = destination.label
+                            )
+                        },
+                        label = { Text(destination.label) },
+                        selected = destination == currentDestination,
+                        onClick = { currentDestination = destination }
+                    )
+                }
             }
         }
     ) {

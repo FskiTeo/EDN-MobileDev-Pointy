@@ -27,16 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.jht.pointy.ui.attendance.AttendanceScreen
-import com.jht.pointy.ui.theme.PointyTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jht.pointy.ui.LoginScreen
 import com.jht.pointy.ui.ScanScreen
+// import com.jht.pointy.ui.attendance.AttendanceScreen // TODO: à créer
 import com.jht.pointy.ui.dashboard.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.viewModel.ScanViewModel
+
+// ─── Activity ─────────────────────────────────────────────────────────────────
 
 class MainActivity : ComponentActivity() {
 
@@ -92,26 +93,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PointyApp(scanViewModel: ScanViewModel) {
-    var isLoggedIn by rememberSaveable { mutableStateOf(false) }
+    var isLoggedIn         by rememberSaveable { mutableStateOf(false) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
-    var selectedCourseId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach { destination ->
-                item(
-                    icon = {
-                        Icon(
-                            imageVector = destination.icon,
-                            contentDescription = destination.label
-                        )
-                    },
-                    label = { Text(destination.label) },
-                    selected = destination == currentDestination,
-                    onClick = {
-                        currentDestination = destination
-                        selectedCourseId = null  // permet de reset quand on change d'onglet
-                    }
+    var selectedCourseId   by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (!isLoggedIn) {
         LoginScreen(onLoginSuccess = { isLoggedIn = true })
@@ -119,13 +103,15 @@ fun PointyApp(scanViewModel: ScanViewModel) {
         val cs = MaterialTheme.colorScheme
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier       = Modifier.fillMaxSize(),
             containerColor = cs.background,
             bottomBar = {
                 PointyBottomBar(
                     current  = currentDestination,
-                    onSelect = { currentDestination = it }
-
+                    onSelect = {
+                        currentDestination = it
+                        selectedCourseId   = null // reset navigation interne au changement d'onglet
+                    }
                 )
             }
         ) { innerPadding ->
@@ -136,23 +122,16 @@ fun PointyApp(scanViewModel: ScanViewModel) {
             ) {
                 when (currentDestination) {
                     AppDestinations.COURS -> {
-                        val courseId = selectedCourseId
-                        if (courseId == null) {
+                        if (selectedCourseId == null) {
                             DashboardScreen(
                                 onCourseClick = { id -> selectedCourseId = id }
                             )
                         } else {
-                            AttendanceScreen(courseId = courseId)
+                            PlaceholderScreen("Appel du cours $selectedCourseId") // TODO: AttendanceScreen
                         }
                     }
-                    AppDestinations.ELEVES -> {
-                        PlaceholderScreen("Gestion des élèves & NFC")
-                    }
-                    AppDestinations.PROFIL -> {
-                        // TODO: Remplacer par ProfileScreen()
-                        PlaceholderScreen("Paramètres du professeur")
-                    }
-
+                    AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)
+                    AppDestinations.PROFIL -> PlaceholderScreen("Paramètres du professeur")
                 }
             }
         }
@@ -174,21 +153,19 @@ private fun PointyBottomBar(
             .background(cs.surface)
             .navigationBarsPadding()
     ) {
-        // Top separator line
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(cs.outline.copy(alpha = 0.3f))
         )
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment     = Alignment.CenterVertically
         ) {
             AppDestinations.entries.forEach { destination ->
                 NavItem(
@@ -221,7 +198,6 @@ private fun NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Indicator dot
         Box(
             modifier = Modifier
                 .size(4.dp)
@@ -230,14 +206,12 @@ private fun NavItem(
                     shape = RoundedCornerShape(50)
                 )
         )
-
         Icon(
             imageVector        = destination.icon,
             contentDescription = destination.label,
             tint               = if (isSelected) cs.onBackground else cs.onSurfaceVariant,
             modifier           = Modifier.size(22.dp)
         )
-
         Text(
             text          = destination.label,
             fontSize      = 10.sp,

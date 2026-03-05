@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -89,8 +89,8 @@ fun ScanScreen(viewModel: ScanViewModel) {
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector        = Icons.Default.Nfc,
-                                contentDescription = "En attente",
+                                imageVector        = Icons.Default.Search,
+                                contentDescription = "En attente NFC",
                                 modifier           = Modifier.size(40.dp),
                                 tint               = cs.primary
                             )
@@ -108,18 +108,18 @@ fun ScanScreen(viewModel: ScanViewModel) {
             ) { isScanned ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text       = if (isScanned) "Étudiant détecté" else "Prêt à scanner",
-                        fontSize   = 26.sp,
-                        fontWeight = FontWeight.Black,
-                        color      = cs.onBackground,
+                        text          = if (isScanned) "Étudiant détecté" else "Prêt à scanner",
+                        fontSize      = 26.sp,
+                        fontWeight    = FontWeight.Black,
+                        color         = cs.onBackground,
                         letterSpacing = (-0.5).sp
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text      = if (isScanned) "Scan NFC réussi" else "Approchez une carte NFC",
-                        fontSize  = 14.sp,
-                        color     = cs.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
+                        text       = if (isScanned) "Scan NFC réussi" else "Approchez une carte NFC",
+                        fontSize   = 14.sp,
+                        color      = cs.onSurfaceVariant,
+                        textAlign  = TextAlign.Center,
                         fontWeight = FontWeight.Normal
                     )
                 }
@@ -139,10 +139,10 @@ fun ScanScreen(viewModel: ScanViewModel) {
                             .padding(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text       = "ID : $scannedUid",
-                            fontSize   = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color      = cs.onSurfaceVariant,
+                            text          = "ID : $scannedUid",
+                            fontSize      = 13.sp,
+                            fontWeight    = FontWeight.Medium,
+                            color         = cs.onSurfaceVariant,
                             letterSpacing = 0.5.sp
                         )
                     }
@@ -169,10 +169,10 @@ fun ScanScreen(viewModel: ScanViewModel) {
                     elevation = ButtonDefaults.buttonElevation(0.dp)
                 ) {
                     Text(
-                        text         = "Scanner un autre élève",
-                        fontSize     = 15.sp,
-                        fontWeight   = FontWeight.SemiBold,
-                        color        = cs.background,
+                        text          = "Scanner un autre élève",
+                        fontSize      = 15.sp,
+                        fontWeight    = FontWeight.SemiBold,
+                        color         = cs.background,
                         letterSpacing = 0.3.sp
                     )
                 }

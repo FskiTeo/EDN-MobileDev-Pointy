@@ -26,8 +26,29 @@ class FakeCourseRepository {
     )
 
     fun getFakeStudents(): List<Student> = listOf(
-        Student("101", "Alice", "04:A1:B2:C3"),
-        Student("102", "Bob", null), // Lui n'a pas encore sa carte enregistrée
-        Student("103", "Charlie", "04:D4:E5:F6")
+        Student(
+            id = "101",
+            firstName = "Alice",
+            lastName = "Martin",
+            nfcUid = "04:A1:B2:C3"
+        ),
+        Student( // Lui n'a pas encore sa carte enregistrée
+            id = "102",
+            firstName = "Bob",
+            lastName = "Durand",
+            nfcUid = null
+        ),
+        Student(
+            id = "103",
+            firstName = "Charlie",
+            lastName = "Lefevre",
+            nfcUid = "04:D4:E5:F6"
+        )
     )
+
+    fun getStudentsByCourse(courseId: String): List<Student> {
+        return getFakeStudents() // pour l'instant on renvoie tout mais on remplacera par l'api backend
+    }
+
+
 }

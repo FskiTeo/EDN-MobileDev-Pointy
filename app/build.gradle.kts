@@ -47,8 +47,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation(libs.compose.material.icons)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)  // ← gardez uniquement celui-ci
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.material.icons.extended)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.jht.pointy.ui.attendance.AttendanceScreen
+import com.jht.pointy.ui.theme.PointyTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,6 +94,24 @@ class MainActivity : ComponentActivity() {
 fun PointyApp(scanViewModel: ScanViewModel) {
     var isLoggedIn by rememberSaveable { mutableStateOf(false) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
+    var selectedCourseId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    NavigationSuiteScaffold(
+        navigationSuiteItems = {
+            AppDestinations.entries.forEach { destination ->
+                item(
+                    icon = {
+                        Icon(
+                            imageVector = destination.icon,
+                            contentDescription = destination.label
+                        )
+                    },
+                    label = { Text(destination.label) },
+                    selected = destination == currentDestination,
+                    onClick = {
+                        currentDestination = destination
+                        selectedCourseId = null  // permet de reset quand on change d'onglet
+                    }
 
     if (!isLoggedIn) {
         LoginScreen(onLoginSuccess = { isLoggedIn = true })
@@ -105,6 +125,7 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                 PointyBottomBar(
                     current  = currentDestination,
                     onSelect = { currentDestination = it }
+
                 )
             }
         ) { innerPadding ->
@@ -114,9 +135,24 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                     .padding(innerPadding)
             ) {
                 when (currentDestination) {
-                    AppDestinations.COURS  -> DashboardScreen()
-                    AppDestinations.ELEVES -> PlaceholderScreen("Gestion des élèves & NFC")
-                    AppDestinations.PROFIL -> PlaceholderScreen("Paramètres du professeur")
+                    AppDestinations.COURS -> {
+                        val courseId = selectedCourseId
+                        if (courseId == null) {
+                            DashboardScreen(
+                                onCourseClick = { id -> selectedCourseId = id }
+                            )
+                        } else {
+                            AttendanceScreen(courseId = courseId)
+                        }
+                    }
+                    AppDestinations.ELEVES -> {
+                        PlaceholderScreen("Gestion des élèves & NFC")
+                    }
+                    AppDestinations.PROFIL -> {
+                        // TODO: Remplacer par ProfileScreen()
+                        PlaceholderScreen("Paramètres du professeur")
+                    }
+
                 }
             }
         }

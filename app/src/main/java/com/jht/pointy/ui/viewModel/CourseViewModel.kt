@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 class CourseViewModel : ViewModel() {
     private val repository = FakeCourseRepository()
 
-    private val _students = MutableStateFlow(repository.getFakeStudents())
+    private val _students = MutableStateFlow<List<Student>>(emptyList())
     val students: StateFlow<List<Student>> = _students
+
+    fun loadStudents(courseId: String) {
+        _students.value = repository.getStudentsByCourse(courseId)
+    }
 
     fun markAsPresent(uid: String) {
         _students.value = _students.value.map {

@@ -9,19 +9,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jht.pointy.data.model.Teacher
 import com.jht.pointy.ui.viewModel.ProfileState
 import com.jht.pointy.ui.viewModel.ProfileViewModel
-import com.jht.pointy.ui.viewModel.TeacherProfile
 
 @Composable
 fun ProfileScreen(
@@ -49,7 +49,6 @@ fun ProfileScreen(
                         modifier    = Modifier.size(32.dp)
                     )
                 }
-
                 is ProfileState.Error -> {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -68,16 +67,15 @@ fun ProfileScreen(
                             color    = cs.onSurfaceVariant
                         )
                         Button(
-                            onClick = { viewModel.fetchProfile() },
-                            shape   = RoundedCornerShape(8.dp),
-                            colors  = ButtonDefaults.buttonColors(containerColor = cs.onBackground),
+                            onClick   = { viewModel.fetchProfile() },
+                            shape     = RoundedCornerShape(8.dp),
+                            colors    = ButtonDefaults.buttonColors(containerColor = cs.onBackground),
                             elevation = ButtonDefaults.buttonElevation(0.dp)
                         ) {
                             Text("Réessayer", color = cs.background)
                         }
                     }
                 }
-
                 is ProfileState.Success -> {
                     ProfileContent(teacher = state.teacher)
                 }
@@ -87,7 +85,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileContent(teacher: TeacherProfile) {
+private fun ProfileContent(teacher: Teacher) {
     val cs = MaterialTheme.colorScheme
 
     Column(
@@ -124,7 +122,6 @@ private fun ProfileContent(teacher: TeacherProfile) {
         Text(
             text       = "Enseignant",
             fontSize   = 14.sp,
-            fontWeight = FontWeight.Normal,
             color      = cs.onSurfaceVariant
         )
 
@@ -140,25 +137,13 @@ private fun ProfileContent(teacher: TeacherProfile) {
 
         Spacer(Modifier.height(12.dp))
 
-        InfoRow(
-            icon  = Icons.Default.Email,
-            label = "Email",
-            value = teacher.email
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        InfoRow(
-            icon  = Icons.Default.Person,
-            label = "Identifiant",
-            value = teacher.id
-        )
+        InfoRow(icon = Icons.Default.Email, label = "Email", value = teacher.email)
     }
 }
 
 @Composable
 private fun InfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     value: String
 ) {
@@ -191,8 +176,7 @@ private fun InfoRow(
             Text(
                 text       = value,
                 fontSize   = 14.sp,
-                color      = cs.onSurface,
-                fontWeight = FontWeight.Normal
+                color      = cs.onSurface
             )
         }
     }

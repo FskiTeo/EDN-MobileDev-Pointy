@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.jht.pointy.ui.attendance.AttendanceScreen
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.dashboard.DashboardScreen
 
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PointyApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
+    var selectedCourseId by rememberSaveable { mutableStateOf<String?>(null) }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -55,7 +57,10 @@ fun PointyApp() {
                     },
                     label = { Text(destination.label) },
                     selected = destination == currentDestination,
-                    onClick = { currentDestination = destination }
+                    onClick = {
+                        currentDestination = destination
+                        selectedCourseId = null  // permet de reset quand on change d'onglet
+                    }
                 )
             }
         }
@@ -65,10 +70,16 @@ fun PointyApp() {
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 when (currentDestination) {
                     AppDestinations.COURS -> {
-                        DashboardScreen()
+                        val courseId = selectedCourseId
+                        if (courseId == null) {
+                            DashboardScreen(
+                                onCourseClick = { id -> selectedCourseId = id }
+                            )
+                        } else {
+                            AttendanceScreen(courseId = courseId)
+                        }
                     }
                     AppDestinations.ELEVES -> {
-                        // TODO: Remplacer par StudentListScreen()
                         PlaceholderScreen("Gestion des élèves & NFC")
                     }
                     AppDestinations.PROFIL -> {

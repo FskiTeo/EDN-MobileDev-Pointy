@@ -27,6 +27,7 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-core" } # material-icons-extended inclut des centaines d'icônes dc pèse lourd -> pour rester léger, material-icons-core qui a que les icônes de base
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

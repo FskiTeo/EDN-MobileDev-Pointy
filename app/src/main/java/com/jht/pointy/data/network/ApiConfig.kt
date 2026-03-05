@@ -5,4 +5,5 @@ object ApiConfig {
 
     //Endpoints
     const val LOGIN        = "$BASE_URL/teachers/login"
+    const val ME      = "$BASE_URL/teachers/me"
 }

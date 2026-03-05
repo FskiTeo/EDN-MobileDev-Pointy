@@ -3,6 +3,7 @@ package com.jht.pointy.ui.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jht.pointy.data.network.ApiConfig
+import com.jht.pointy.data.network.SessionManager
 import com.jht.pointy.state.LoginState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +51,10 @@ class LoginViewModel : ViewModel() {
                         connection.disconnect()
 
                         val json = JSONObject(responseText)
+
+                        SessionManager.token     = json.getString("token")
+                        SessionManager.teacherId = json.getJSONObject("teacher").getString("id")
+
                         LoginState.Success
 
                     } else {
@@ -67,7 +72,7 @@ class LoginViewModel : ViewModel() {
                     }
 
                 } catch (e: Exception) {
-                    LoginState.Error("Impossible de contacter le serveur : ${e.message}")
+                    LoginState.Error("${e.javaClass.simpleName}: ${e.message}")
                 }
             }
 

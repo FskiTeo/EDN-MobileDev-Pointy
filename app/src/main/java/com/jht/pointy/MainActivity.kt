@@ -11,7 +11,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -26,11 +37,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jht.pointy.ui.LoginScreen
+import com.jht.pointy.ui.ProfileScreen
 import com.jht.pointy.ui.ScanScreen
 import com.jht.pointy.ui.attendance.AttendanceScreen
 import com.jht.pointy.ui.dashboard.DashboardScreen
@@ -110,7 +123,7 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                     current  = currentDestination,
                     onSelect = {
                         currentDestination = it
-                        selectedCourseId   = null // reset navigation interne au changement d'onglet
+                        selectedCourseId   = null
                     }
                 )
             }
@@ -132,7 +145,7 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)
-                    AppDestinations.PROFIL -> PlaceholderScreen("Paramètres du professeur")
+                    AppDestinations.PROFIL -> ProfileScreen()
                 }
             }
         }
@@ -142,38 +155,43 @@ fun PointyApp(scanViewModel: ScanViewModel) {
 // ─── Bottom Bar ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun PointyBottomBar(
+fun PointyBottomBar(
     current: AppDestinations,
     onSelect: (AppDestinations) -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(cs.surface)
+            .background(cs.background)
             .navigationBarsPadding()
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(cs.outline.copy(alpha = 0.3f))
-        )
-        Row(
-            modifier = Modifier
+                .padding(horizontal = 24.dp, vertical = 12.dp)
                 .fillMaxWidth()
                 .height(64.dp)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            AppDestinations.entries.forEach { destination ->
-                NavItem(
-                    destination = destination,
-                    isSelected  = destination == current,
-                    onClick     = { onSelect(destination) }
+                .clip(RoundedCornerShape(32.dp))
+                .background(cs.surface)
+                .border(
+                    width = 1.dp,
+                    color = cs.outline.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(32.dp)
                 )
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AppDestinations.entries.forEach { destination ->
+                    NavItem(
+                        destination = destination,
+                        isSelected  = destination == current,
+                        onClick     = { onSelect(destination) }
+                    )
+                }
             }
         }
     }
@@ -187,39 +205,68 @@ private fun NavItem(
 ) {
     val cs = MaterialTheme.colorScheme
 
-    Column(
+    val bgAlpha by animateFloatAsState(
+        targetValue   = if (isSelected) 1f else 0f,
+        animationSpec = tween(250, easing = EaseInOutCubic),
+        label         = "bgAlpha"
+    )
+    val iconTint by animateColorAsState(
+        targetValue   = if (isSelected) cs.onPrimary else cs.onSurfaceVariant,
+        animationSpec = tween(250),
+        label         = "iconTint"
+    )
+    val scale by animateFloatAsState(
+        targetValue   = if (isSelected) 1.08f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label         = "scale"
+    )
+
+    Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .scale(scale)
+            .clip(RoundedCornerShape(24.dp))
+            .background(cs.primary.copy(alpha = bgAlpha))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null,
                 onClick           = onClick
             )
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(horizontal = if (isSelected) 20.dp else 16.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(4.dp)
-                .background(
-                    color = if (isSelected) cs.primary else cs.surface,
-                    shape = RoundedCornerShape(50)
+        AnimatedContent(
+            targetState = isSelected,
+            transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(150)) },
+            label = "navContent"
+        ) { selected ->
+            if (selected) {
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector        = destination.icon,
+                        contentDescription = destination.label,
+                        tint               = iconTint,
+                        modifier           = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text          = destination.label,
+                        fontSize      = 13.sp,
+                        fontWeight    = FontWeight.SemiBold,
+                        color         = iconTint,
+                        letterSpacing = 0.2.sp
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector        = destination.icon,
+                    contentDescription = destination.label,
+                    tint               = iconTint,
+                    modifier           = Modifier.size(20.dp)
                 )
-        )
-        Icon(
-            imageVector        = destination.icon,
-            contentDescription = destination.label,
-            tint               = if (isSelected) cs.onBackground else cs.onSurfaceVariant,
-            modifier           = Modifier.size(22.dp)
-        )
-        Text(
-            text          = destination.label,
-            fontSize      = 10.sp,
-            fontWeight    = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color         = if (isSelected) cs.onBackground else cs.onSurfaceVariant,
-            letterSpacing = 0.3.sp
-        )
+            }
+        }
     }
 }
 

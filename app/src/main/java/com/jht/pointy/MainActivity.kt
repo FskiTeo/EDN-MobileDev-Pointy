@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jht.pointy.ui.LoginScreen
 import com.jht.pointy.ui.ScanScreen
-// import com.jht.pointy.ui.attendance.AttendanceScreen // TODO: à créer
+import com.jht.pointy.ui.attendance.AttendanceScreen
 import com.jht.pointy.ui.dashboard.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.viewModel.ScanViewModel
@@ -122,12 +122,13 @@ fun PointyApp(scanViewModel: ScanViewModel) {
             ) {
                 when (currentDestination) {
                     AppDestinations.COURS -> {
-                        if (selectedCourseId == null) {
+                        val courseId = selectedCourseId
+                        if (courseId == null) {
                             DashboardScreen(
                                 onCourseClick = { id -> selectedCourseId = id }
                             )
                         } else {
-                            PlaceholderScreen("Appel du cours $selectedCourseId") // TODO: AttendanceScreen
+                            AttendanceScreen(courseId = courseId)
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)

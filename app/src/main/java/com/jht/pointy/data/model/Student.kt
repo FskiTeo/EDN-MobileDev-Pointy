@@ -1,4 +1,4 @@
-package com.jht.pointy.model
+package com.jht.pointy.data.model
 
 data class Student(
     val id: String,

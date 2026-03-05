@@ -1,8 +1,8 @@
 package com.jht.pointy.ui.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.jht.pointy.model.Student
-import com.jht.pointy.repository.FakeCourseRepository
+import com.jht.pointy.data.model.Student
+import com.jht.pointy.data.repository.FakeCourseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

@@ -25,6 +25,8 @@ class LoginViewModel : ViewModel() {
                 val response = api.login(LoginRequest(email, password))
                 SessionManager.token     = response.token
                 SessionManager.teacherId = response.teacher.id
+                SessionManager.teacherFirstName = response.teacher.firstName
+                SessionManager.teacherLastName = response.teacher.lastName
                 _uiState.value = LoginState.Success
             } catch (e: retrofit2.HttpException) {
                 val message = e.response()?.errorBody()?.string() ?: "Identifiants incorrects"

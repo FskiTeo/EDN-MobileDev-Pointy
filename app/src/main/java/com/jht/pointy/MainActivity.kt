@@ -45,8 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.jht.pointy.ui.LoginScreen
 import com.jht.pointy.ui.ProfileScreen
 import com.jht.pointy.ui.ScanScreen
-import com.jht.pointy.ui.attendance.AttendanceScreen
-import com.jht.pointy.ui.dashboard.DashboardScreen
+import com.jht.pointy.ui.AttendanceScreen
+import com.jht.pointy.ui.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.viewModel.ScanViewModel
 
@@ -124,6 +124,7 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                     onSelect = {
                         currentDestination = it
                         selectedCourseId   = null
+                        scanViewModel.stopAttendanceScan()
                     }
                 )
             }
@@ -141,7 +142,13 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                                 onCourseClick = { id -> selectedCourseId = id }
                             )
                         } else {
-                            AttendanceScreen(courseId = courseId)
+                            AttendanceScreen(
+                                courseId = courseId,
+                                onStartScanClick = { id ->
+                                    scanViewModel.startAttendanceScan(id)
+                                    currentDestination = AppDestinations.ELEVES
+                                }
+                            )
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)

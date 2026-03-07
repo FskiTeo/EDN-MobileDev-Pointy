@@ -24,7 +24,17 @@ import com.jht.pointy.ui.viewModel.ScanViewModel
 @Composable
 fun ScanScreen(viewModel: ScanViewModel) {
     val scannedUid by viewModel.lastScannedUid.collectAsState()
+    val activeCourseId by viewModel.activeCourseId.collectAsState()
+    val isSubmitting by viewModel.isSubmitting.collectAsState()
+    val submitMessage by viewModel.submitMessage.collectAsState()
     val cs = MaterialTheme.colorScheme
+
+    LaunchedEffect(scannedUid, activeCourseId) {
+        val uid = scannedUid
+        if (uid != null && activeCourseId != null) {
+            viewModel.submitAttendanceFromCard(uid)
+        }
+    }
 
     val pulse = rememberInfiniteTransition(label = "pulse")
     val ringScale by pulse.animateFloat(
@@ -116,13 +126,28 @@ fun ScanScreen(viewModel: ScanViewModel) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text       = if (isScanned) "Scan NFC réussi" else "Approchez une carte NFC",
+                        text       = when {
+                            isScanned && activeCourseId != null && isSubmitting -> "Enregistrement de la présence..."
+                            isScanned && activeCourseId != null -> submitMessage ?: "Scan NFC réussi"
+                            isScanned -> "Scan NFC réussi"
+                            else -> "Approchez une carte NFC"
+                        },
                         fontSize   = 14.sp,
                         color      = cs.onSurfaceVariant,
                         textAlign  = TextAlign.Center,
                         fontWeight = FontWeight.Normal
                     )
                 }
+            }
+
+            if (activeCourseId != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Mode présence cours actif",
+                    fontSize = 12.sp,
+                    color = cs.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
             AnimatedVisibility(

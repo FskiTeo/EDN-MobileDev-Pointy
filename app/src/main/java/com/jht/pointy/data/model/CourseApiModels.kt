@@ -39,6 +39,13 @@ data class StudentLiteDto(
     val lastName: String
 )
 
+data class CourseAttendancePatchRequest(
+    val courseId: String,
+    val attendance: String,
+    val studentId: String? = null,
+    val cardSerial: String? = null
+)
+
 fun CourseListItemDto.toCourse(): Course {
     return Course(
         id = id,
@@ -57,7 +64,7 @@ fun CourseDetailDto.toStudents(): List<Student> {
             firstName = courseStudent.student.firstName,
             lastName = courseStudent.student.lastName,
             nfcUid = null,
-            isPresent = courseStudent.attendance.equals("present", ignoreCase = true)
+            attendance = courseStudent.attendance.lowercase()
         )
     }
 }

@@ -124,6 +124,7 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                     onSelect = {
                         currentDestination = it
                         selectedCourseId   = null
+                        scanViewModel.stopAttendanceScan()
                     }
                 )
             }
@@ -141,7 +142,13 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                                 onCourseClick = { id -> selectedCourseId = id }
                             )
                         } else {
-                            AttendanceScreen(courseId = courseId)
+                            AttendanceScreen(
+                                courseId = courseId,
+                                onStartScanClick = { id ->
+                                    scanViewModel.startAttendanceScan(id)
+                                    currentDestination = AppDestinations.ELEVES
+                                }
+                            )
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)

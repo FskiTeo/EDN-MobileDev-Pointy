@@ -2,6 +2,7 @@ package com.jht.pointy.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jht.pointy.data.model.CourseAttendancePatchRequest
 import com.jht.pointy.data.model.Student
 import com.jht.pointy.data.model.toStudents
 import com.jht.pointy.data.network.ApiService
@@ -22,6 +23,9 @@ class CourseViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private val _updatingStudentId = MutableStateFlow<String?>(null)
+    val updatingStudentId: StateFlow<String?> = _updatingStudentId
+
     fun loadStudents(courseId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -40,7 +44,40 @@ class CourseViewModel : ViewModel() {
 
     fun markAsPresent(uid: String) {
         _students.value = _students.value.map {
-            if (it.nfcUid == uid) it.copy(isPresent = true) else it
+            if (it.nfcUid == uid) it.copy(attendance = "present") else it
+        }
+    }
+
+    fun rotateAttendance(courseId: String, student: Student) {
+        val nextAttendance = nextAttendance(student.attendance)
+        viewModelScope.launch {
+            _updatingStudentId.value = student.id
+            _errorMessage.value = null
+            try {
+                api.patchAttendance(
+                    CourseAttendancePatchRequest(
+                        courseId = courseId,
+                        studentId = student.id,
+                        attendance = nextAttendance
+                    )
+                )
+
+                _students.value = _students.value.map {
+                    if (it.id == student.id) it.copy(attendance = nextAttendance) else it
+                }
+            } catch (_: Exception) {
+                _errorMessage.value = "Impossible de mettre à jour la présence"
+            } finally {
+                _updatingStudentId.value = null
+            }
+        }
+    }
+
+    private fun nextAttendance(current: String): String {
+        return when (current.lowercase()) {
+            "absent" -> "present"
+            "present" -> "excused"
+            else -> "absent"
         }
     }
 }

@@ -4,6 +4,5 @@ data class Student(
     val id: String,
     val firstName: String,
     val lastName: String,
-    val nfcUid: String? = null,
-    val isPresent: Boolean = false
+    val cardSerial: String? = null
 )

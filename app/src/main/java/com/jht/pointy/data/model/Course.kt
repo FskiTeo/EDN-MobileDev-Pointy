@@ -7,7 +7,8 @@ data class Course(
     val startDateTime: String,
     val duration: Int,
     val location: String,
-    val courseStudents: List<CourseStudent> = emptyList()
+    val studentCount: Int? = null,
+    val courseStudents: List<CourseStudent>? = null
 )
 
 data class CourseStudent(

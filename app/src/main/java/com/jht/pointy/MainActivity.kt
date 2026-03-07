@@ -45,8 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.jht.pointy.ui.LoginScreen
 import com.jht.pointy.ui.ProfileScreen
 import com.jht.pointy.ui.ScanScreen
-import com.jht.pointy.ui.attendance.AttendanceScreen
-import com.jht.pointy.ui.dashboard.DashboardScreen
+import com.jht.pointy.ui.AttendanceScreen
+import com.jht.pointy.ui.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.viewModel.ScanViewModel
 

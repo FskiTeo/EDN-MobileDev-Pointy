@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseInOutCubic
@@ -48,6 +49,7 @@ import com.jht.pointy.ui.ScanScreen
 import com.jht.pointy.ui.attendance.AttendanceScreen
 import com.jht.pointy.ui.dashboard.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
+import com.jht.pointy.ui.viewModel.CourseViewModel
 import com.jht.pointy.ui.viewModel.ScanViewModel
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
@@ -135,13 +137,18 @@ fun PointyApp(scanViewModel: ScanViewModel) {
             ) {
                 when (currentDestination) {
                     AppDestinations.COURS -> {
+                        val courseViewModel: CourseViewModel = viewModel()
                         val courseId = selectedCourseId
                         if (courseId == null) {
                             DashboardScreen(
+                                viewModel     = courseViewModel,
                                 onCourseClick = { id -> selectedCourseId = id }
                             )
                         } else {
-                            AttendanceScreen(courseId = courseId)
+                            AttendanceScreen(
+                                courseId  = courseId,
+                                viewModel = courseViewModel
+                            )
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)

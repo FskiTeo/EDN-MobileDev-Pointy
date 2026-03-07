@@ -21,6 +21,9 @@ interface ApiService {
     @GET("courses/mycourses")
     suspend fun getMyCourses(): List<Course>
 
+    @GET("courses/{id}")
+    suspend fun getCourseById(@Path("id") courseId: String): Course
+
     @PATCH("courses/presence/{courseId}/{studentId}/{attendance}")
     suspend fun updateAttendance(
         @Path("courseId") courseId: String,

@@ -144,8 +144,9 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                         } else {
                             AttendanceScreen(
                                 courseId = courseId,
-                                onStartScanClick = { id ->
-                                    scanViewModel.startAttendanceScan(id)
+                                onBack = { selectedCourseId = null },
+                                onStartScanClick = { id, name ->
+                                    scanViewModel.startAttendanceScan(id, name)
                                     currentDestination = AppDestinations.ELEVES
                                 }
                             )

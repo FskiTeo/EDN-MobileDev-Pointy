@@ -27,83 +27,107 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jht.pointy.ui.viewModel.CourseViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendanceScreen(
     courseId: String,
-    onStartScanClick: (String) -> Unit = {},
+    onBack: () -> Unit = {},
+    onStartScanClick: (courseId: String, courseName: String) -> Unit = { _, _ -> },
     viewModel: CourseViewModel = viewModel()
 ) {
     val students by viewModel.students.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val updatingStudentId by viewModel.updatingStudentId.collectAsState()
+    val courseName by viewModel.courseName.collectAsState()
 
     LaunchedEffect(courseId) {
         viewModel.loadStudents(courseId)
     }
 
-    when {
-        isLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-
-        errorMessage != null -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = errorMessage ?: "Erreur",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
+    Column{
+        TopAppBar(
+            title = { Text(courseName.ifBlank { "Feuille d'appel" }) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Retour"
                     )
-                    Button(onClick = { viewModel.loadStudents(courseId) }) {
-                        Text("Réessayer")
+                }
+            },
+            windowInsets = WindowInsets(0)
+        )
+        when {
+            isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            errorMessage != null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = errorMessage ?: "Erreur",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Button(onClick = { viewModel.loadStudents(courseId) }) {
+                            Text("Réessayer")
+                        }
                     }
                 }
             }
-        }
 
-        else -> {
-            Column {
-                Button(
-                    onClick = { onStartScanClick(courseId) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                ) {
-                    Text("Démarrer le scan de présence")
-                }
+            else -> {
+                Column {
+                    Button(
+                        onClick = { onStartScanClick(courseId, courseName) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp)
+                    ) {
+                        Text("Démarrer le scan de présence")
+                    }
 
-                LazyColumn {
-                    items(students) { student ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                .clickable(enabled = updatingStudentId != student.id) {
-                                    viewModel.rotateAttendance(courseId, student)
-                                },
-                            elevation = CardDefaults.cardElevation(2.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "${student.firstName} ${student.lastName}",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                AttendanceBadge(attendance = student.attendance)
-
-                                if (updatingStudentId == student.id) {
+                    LazyColumn {
+                        items(students) { student ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clickable(enabled = updatingStudentId != student.id) {
+                                        viewModel.rotateAttendance(courseId, student)
+                                    },
+                                elevation = CardDefaults.cardElevation(2.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
-                                        text = "Mise à jour...",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = "${student.firstName} ${student.lastName}",
+                                        style = MaterialTheme.typography.titleMedium
                                     )
+
+                                    AttendanceBadge(attendance = student.attendance)
+
+                                    if (updatingStudentId == student.id) {
+                                        Text(
+                                            text = "Mise à jour...",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
                         }

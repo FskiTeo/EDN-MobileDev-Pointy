@@ -26,12 +26,16 @@ class CourseViewModel : ViewModel() {
     private val _updatingStudentId = MutableStateFlow<String?>(null)
     val updatingStudentId: StateFlow<String?> = _updatingStudentId
 
+    private val _courseName = MutableStateFlow<String>("")
+    val courseName: StateFlow<String> = _courseName
+
     fun loadStudents(courseId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             try {
                 val course = api.getCourseById(courseId)
+                _courseName.value = course.name
                 _students.value = course.toStudents()
             } catch (_: Exception) {
                 _students.value = emptyList()

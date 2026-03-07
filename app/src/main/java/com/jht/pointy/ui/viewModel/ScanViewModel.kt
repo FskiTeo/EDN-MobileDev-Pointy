@@ -24,18 +24,23 @@ class ScanViewModel : ViewModel() {
     private val _submitMessage = MutableStateFlow<String?>(null)
     val submitMessage: StateFlow<String?> = _submitMessage
 
+    private val _activeCourseName = MutableStateFlow<String?>(null)
+    val activeCourseName: StateFlow<String?> = _activeCourseName
+
     fun onCardScanned(uid: String) {
         _lastScannedUid.value = uid
     }
 
-    fun startAttendanceScan(courseId: String) {
+    fun startAttendanceScan(courseId: String, courseName: String) {
         _activeCourseId.value = courseId
+        _activeCourseName.value = courseName
         _submitMessage.value = null
         _lastScannedUid.value = null
     }
 
     fun stopAttendanceScan() {
         _activeCourseId.value = null
+        _activeCourseName.value = null
         _submitMessage.value = null
         _lastScannedUid.value = null
     }

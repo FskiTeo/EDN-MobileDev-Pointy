@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jht.pointy.data.model.CourseStudent
-import com.jht.pointy.state.CourseState
 import com.jht.pointy.ui.viewModel.CourseViewModel
 
 @Composable
@@ -18,14 +17,14 @@ fun AttendanceScreen(
     courseId: String,
     viewModel: CourseViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val selectedCourse by viewModel.selectedCourse.collectAsState()
 
-    val courseStudents = when (val state = uiState) {
-        is CourseState.Success -> state.courses
-            .find { it.id == courseId }
-            ?.courseStudents ?: emptyList()
-        else -> emptyList()
+    LaunchedEffect(courseId) {
+        viewModel.loadCourseById(courseId)
     }
+
+    val courseStudents = selectedCourse?.courseStudents.orEmpty()
+
 
     LazyColumn {
         items(courseStudents) { courseStudent ->

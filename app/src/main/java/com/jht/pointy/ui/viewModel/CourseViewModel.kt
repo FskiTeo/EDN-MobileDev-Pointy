@@ -1,24 +1,49 @@
 package com.jht.pointy.ui.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.jht.pointy.data.model.Student
-import com.jht.pointy.data.repository.FakeCourseRepository
+import androidx.lifecycle.viewModelScope
+import com.jht.pointy.data.network.ApiService
+import com.jht.pointy.data.network.RetrofitClient
+import com.jht.pointy.state.CourseState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class CourseViewModel : ViewModel() {
-    private val repository = FakeCourseRepository()
 
-    private val _students = MutableStateFlow<List<Student>>(emptyList())
-    val students: StateFlow<List<Student>> = _students
+    private val api = RetrofitClient.instance.create(ApiService::class.java)
 
-    fun loadStudents(courseId: String) {
-        _students.value = repository.getStudentsByCourse(courseId)
+    private val _uiState = MutableStateFlow<CourseState>(CourseState.Idle)
+    val uiState: StateFlow<CourseState> = _uiState
+
+    init {
+        loadCourses()
     }
 
-    fun markAsPresent(uid: String) {
-        _students.value = _students.value.map {
-            if (it.nfcUid == uid) it.copy(isPresent = true) else it
+    fun loadCourses() {
+        viewModelScope.launch {
+            _uiState.value = CourseState.Loading
+            try {
+                val courses = api.getMyCourses()
+                _uiState.value = CourseState.Success(courses)
+            } catch (e: retrofit2.HttpException) {
+                val message = e.response()?.errorBody()?.string() ?: "Erreur de chargement"
+                _uiState.value = CourseState.Error(message)
+            } catch (e: Exception) {
+                _uiState.value = CourseState.Error("Impossible de contacter le serveur")
+            }
+        }
+    }
+
+    fun updateAttendance(courseId: String, studentId: String, attendance: String) {
+        viewModelScope.launch {
+            try {
+                api.updateAttendance(courseId, studentId, attendance)
+                // Ici, on recharge les cours pour avoir les présences à jour
+                loadCourses()
+            } catch (e: Exception) {
+                // TODO: gérer l'erreur
+            }
         }
     }
 }

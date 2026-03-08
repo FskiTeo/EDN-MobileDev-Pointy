@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -30,10 +32,12 @@ import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,10 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jht.pointy.data.model.Course
+import com.jht.pointy.data.network.SessionManager
 import com.jht.pointy.ui.viewModel.DashboardUiState
 import com.jht.pointy.ui.viewModel.DashboardViewModel
 import java.time.LocalDate
@@ -55,10 +61,55 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DashboardTopBar(onProfileClick: () -> Unit = {}) {
+    val cs = MaterialTheme.colorScheme
+
+    val greeting = when (java.time.LocalTime.now().hour) {
+        in 5..11  -> "Bonjour"
+        in 12..17 -> "Bon après-midi"
+        else      -> "Bonsoir"
+    }
+
+    val firstName = SessionManager.teacherFirstName ?: ""
+    val lastName  = SessionManager.teacherLastName ?: ""
+    val initials  = "${firstName.firstOrNull() ?: ""}${lastName.firstOrNull() ?: ""}".uppercase()
+
+    TopAppBar(
+        title = {
+            Text(
+                text = "$greeting, $firstName $lastName",
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        actions = {
+            Box(
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(36.dp)
+                    .background(cs.primary, CircleShape)
+                    .clip(CircleShape)
+                    .clickable { onProfileClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initials,
+                    color = cs.onPrimary,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        windowInsets = WindowInsets(0)
+    )
+}
+
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onCourseClick: (String) -> Unit = {}
+    onCourseClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val cs = MaterialTheme.colorScheme
@@ -71,97 +122,106 @@ fun DashboardScreen(
         (-3..14).map { today.plusDays(it.toLong()) }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(cs.background)
     ) {
-        when (val state = uiState) {
-            is DashboardUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = cs.primary)
-                }
-            }
+        // Ajout de la Top Bar ici
+        DashboardTopBar(onProfileClick = onProfileClick)
 
-            is DashboardUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = state.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = cs.error
-                        )
-                        Button(
-                            onClick = { viewModel.loadCourses() },
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Réessayer", fontWeight = FontWeight.Bold)
-                        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            when (val state = uiState) {
+                is DashboardUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = cs.primary)
                     }
                 }
-            }
 
-            is DashboardUiState.Success -> {
-                Column(modifier = Modifier.fillMaxSize()) {
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(cs.background)
-                            .padding(top = 24.dp, bottom = 8.dp)
-                    ) {
-                        Text(
-                            text = "Vos cours",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (-1).sp
-                            ),
-                            color = cs.onBackground,
-                            modifier = Modifier
-                                .padding(horizontal = 20.dp)
-                                .padding(bottom = 16.dp)
-                        )
-
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 20.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                is DashboardUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(dateList) { date ->
-                                DatePill(
-                                    date = date,
-                                    isSelected = date == selectedDate,
-                                    onClick = { selectedDate = date }
-                                )
+                            Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = cs.error
+                            )
+                            Button(
+                                onClick = { viewModel.loadCourses() },
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Réessayer", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
+                }
 
-                    val filteredCourses = state.courses.filter {
-                        it.startDateTime.toLocalDate() == selectedDate
-                    }
+                is DashboardUiState.Success -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
 
-                    AnimatedContent(
-                        targetState = filteredCourses,
-                        transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
-                        label = "course_list_animation"
-                    ) { coursesToShow ->
-                        if (coursesToShow.isEmpty()) {
-                            // État vide si aucun cours ce jour-là
-                            EmptyStateView()
-                        } else {
-                            LazyColumn(
-                                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.fillMaxSize()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(cs.background)
+                                .padding(top = 24.dp, bottom = 8.dp)
+                        ) {
+                            Text(
+                                text = "Vos cours",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-1).sp
+                                ),
+                                color = cs.onBackground,
+                                modifier = Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .padding(bottom = 16.dp)
+                            )
+
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                items(coursesToShow, key = { it.id }) { course ->
-                                    CourseItem(
-                                        course = course,
-                                        onClick = { onCourseClick(course.id) }
+                                items(dateList) { date ->
+                                    DatePill(
+                                        date = date,
+                                        isSelected = date == selectedDate,
+                                        onClick = { selectedDate = date }
                                     )
+                                }
+                            }
+                        }
+
+                        val filteredCourses = state.courses.filter {
+                            it.startDateTime.toLocalDate() == selectedDate
+                        }
+
+                        AnimatedContent(
+                            targetState = filteredCourses,
+                            transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
+                            label = "course_list_animation"
+                        ) { coursesToShow ->
+                            if (coursesToShow.isEmpty()) {
+                                // État vide si aucun cours ce jour-là
+                                EmptyStateView()
+                            } else {
+                                LazyColumn(
+                                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(coursesToShow, key = { it.id }) { course ->
+                                        CourseItem(
+                                            course = course,
+                                            onClick = { onCourseClick(course.id) }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -233,7 +293,7 @@ fun EmptyStateView() {
             text = "Aucun cours n'est programmé pour cette date.",
             style = MaterialTheme.typography.bodyMedium,
             color = cs.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
         )
     }

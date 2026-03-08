@@ -19,11 +19,14 @@ Built as part of a Mobile Development course project — M1 Cyber.
 ## 📱 Features
 
 - **Teacher login** — secure authentication with JWT token
+- **Secure session persistence** — token stored with DataStore + Tink encryption
+- **Auto session restore on app start** — token is validated via API before entering the app
 - **Course dashboard** — view all your courses with dynamic greeting
 - **Attendance sheet** — list students per course with presence status (present / absent / excused)
 - **NFC scan** — tap a student card to automatically mark them present
 - **Manual attendance** — rotate attendance status by tapping a student card in the list
 - **Profile screen** — view teacher information
+- **Logout** — clear persisted session and return to login
 
 ---
 
@@ -37,6 +40,7 @@ Built as part of a Mobile Development course project — M1 Cyber.
 | State management | StateFlow |
 | HTTP client | Retrofit + OkHttp |
 | JSON parsing | Gson |
+| Secure storage | DataStore Preferences + Tink (AES-GCM) |
 | NFC | Android NfcAdapter |
 | Backend | Node.js + Drizzle ORM + PostgreSQL (Vercel) |
 
@@ -49,10 +53,11 @@ app/
 └── src/main/java/com/jht/pointy/
     ├── data/
     │   ├── model/          # Data classes (Course, Student, Teacher...)
-    │   └── network/        # Retrofit, ApiService, SessionManager
+    │   ├── network/        # Retrofit, ApiService, SessionManager
+    │   └── session/        # SecureSessionStorage (DataStore + Tink)
     ├── state/              # Sealed classes (LoginState, CourseState...)
     └── ui/
-        ├── viewModel/      # ViewModels (Login, Dashboard, Course, Scan, Profile)
+      ├── viewModel/      # ViewModels (AuthState, Login, Dashboard, Course, Scan, Profile)
         ├── AttendanceScreen.kt
         ├── DashboardScreen.kt
         ├── LoginScreen.kt
@@ -66,6 +71,8 @@ app/
 
 ```
 Login
+  ↓
+Session bootstrap on startup (restore token + validate with /courses/mycourses + get /teachers/me)
   ↓
 Dashboard (list of courses)
   ↓ tap a course
@@ -97,7 +104,7 @@ Base URL: `https://edn-mobile-dev-pointy-backend.vercel.app`
 ### Prerequisites
 
 - Android Studio Hedgehog or later
-- Android device or emulator with API 26+
+- Android device or emulator with API 29+
 - NFC-enabled device for full functionality
 
 ### Setup
@@ -132,6 +139,13 @@ git clone https://github.com/your-repo/pointy.git
 | converter-gson | 2.11.0 | JSON to Kotlin object conversion |
 | Gson | 2.10.1 | JSON parsing |
 | OkHttp logging-interceptor | 4.12.0 | HTTP request/response logging |
+
+### Security & Persistence
+| Library | Version | Purpose |
+|---------|---------|---------|
+| DataStore Preferences | 1.1.1 | Persist session data |
+| security-crypto | 1.1.0-alpha06 | Android Keystore integration |
+| Tink Android | 1.13.0 | Encrypt/decrypt JWT token (AES-GCM) |
 
 ### Android & Jetpack
 | Library | Version | Purpose |

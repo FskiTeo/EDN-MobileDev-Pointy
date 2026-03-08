@@ -49,8 +49,7 @@ app/
 └── src/main/java/com/jht/pointy/
     ├── data/
     │   ├── model/          # Data classes (Course, Student, Teacher...)
-    │   ├── network/        # Retrofit, ApiService, SessionManager
-    │   └── repository/     # (FakeRepository removed, replaced by API)
+    │   └── network/        # Retrofit, ApiService, SessionManager
     ├── state/              # Sealed classes (LoginState, CourseState...)
     └── ui/
         ├── viewModel/      # ViewModels (Login, Dashboard, Course, Scan, Profile)

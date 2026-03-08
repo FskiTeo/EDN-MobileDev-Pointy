@@ -9,6 +9,7 @@ import com.jht.pointy.data.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 sealed class DashboardUiState {
     object Loading : DashboardUiState()
@@ -33,6 +34,9 @@ class DashboardViewModel : ViewModel() {
             try {
                 val courses = api.getMyCourses().map { it.toCourse() }
                 _uiState.value = DashboardUiState.Success(courses)
+            } catch (_: HttpException) {
+                AuthStateViewModel.notifyHttpError()
+                _uiState.value = DashboardUiState.Error("Session expirée, reconnectez-vous")
             } catch (_: Exception) {
                 _uiState.value = DashboardUiState.Error("Impossible de charger les cours")
             }

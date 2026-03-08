@@ -10,6 +10,7 @@ import com.jht.pointy.data.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 class CourseViewModel : ViewModel() {
     private val api = RetrofitClient.instance.create(ApiService::class.java)
@@ -37,6 +38,10 @@ class CourseViewModel : ViewModel() {
                 val course = api.getCourseById(courseId)
                 _courseName.value = course.name
                 _students.value = course.toStudents()
+            } catch (_: HttpException) {
+                AuthStateViewModel.notifyHttpError()
+                _students.value = emptyList()
+                _errorMessage.value = "Session expirée, reconnectez-vous"
             } catch (_: Exception) {
                 _students.value = emptyList()
                 _errorMessage.value = "Impossible de charger les élèves"
@@ -69,6 +74,9 @@ class CourseViewModel : ViewModel() {
                 _students.value = _students.value.map {
                     if (it.id == student.id) it.copy(attendance = nextAttendance) else it
                 }
+            } catch (_: HttpException) {
+                AuthStateViewModel.notifyHttpError()
+                _errorMessage.value = "Session expirée, reconnectez-vous"
             } catch (_: Exception) {
                 _errorMessage.value = "Impossible de mettre à jour la présence"
             } finally {

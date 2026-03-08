@@ -8,6 +8,7 @@ import com.jht.pointy.data.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 sealed class ProfileState {
     object Loading : ProfileState()
@@ -32,6 +33,9 @@ class ProfileViewModel : ViewModel() {
             try {
                 val teacher = api.getMe()
                 _uiState.value = ProfileState.Success(teacher)
+            } catch (_: HttpException) {
+                AuthStateViewModel.notifyHttpError()
+                _uiState.value = ProfileState.Error("Session expirée, reconnectez-vous")
             } catch (e: Exception) {
                 _uiState.value = ProfileState.Error("Impossible de charger le profil")
             }

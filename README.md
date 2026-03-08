@@ -6,16 +6,6 @@ Built as part of a Mobile Development course project — M1 Cyber.
 
 ---
 
-## 👥 Team
-
-| Name | Role |
-|------|------|
-| Téo Fiminski | Backend & API integration |
-| Hugo Hochart | Login, NFC module & UI |
-| Julie Vandenberghe | Dashboard, Attendance screen & UX |
-
----
-
 ## 📱 Features
 
 - **Teacher login** — secure authentication with JWT token

@@ -73,6 +73,13 @@ class AuthStateViewModel : ViewModel() {
         _authState.value = AuthUiState.LoggedIn
     }
 
+    fun logout() {
+        viewModelScope.launch {
+            SessionManager.clearSession()
+            _authState.value = AuthUiState.LoggedOut
+        }
+    }
+
     companion object {
         private val unauthorizedEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 

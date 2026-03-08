@@ -162,7 +162,14 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)
-                    AppDestinations.PROFIL -> ProfileScreen()
+                    AppDestinations.PROFIL -> ProfileScreen(
+                        onLogoutClick = {
+                            authViewModel.logout()
+                            currentDestination = AppDestinations.COURS
+                            selectedCourseId = null
+                            scanViewModel.stopAttendanceScan()
+                        }
+                    )
                 }
             }
         }

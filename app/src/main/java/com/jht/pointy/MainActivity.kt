@@ -47,8 +47,12 @@ import com.jht.pointy.ui.ProfileScreen
 import com.jht.pointy.ui.ScanScreen
 import com.jht.pointy.ui.AttendanceScreen
 import com.jht.pointy.ui.DashboardScreen
+import com.jht.pointy.data.network.ApiService
+import com.jht.pointy.data.network.RetrofitClient
+import com.jht.pointy.data.network.SessionManager
 import com.jht.pointy.ui.theme.PointyTheme
 import com.jht.pointy.ui.viewModel.ScanViewModel
+import retrofit2.HttpException
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
@@ -106,12 +110,37 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PointyApp(scanViewModel: ScanViewModel) {
-    var isLoggedIn         by rememberSaveable { mutableStateOf(false) }
+    val api = remember { RetrofitClient.instance.create(ApiService::class.java) }
+    var authState          by rememberSaveable { mutableStateOf(AuthState.LoggedOut) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
     var selectedCourseId   by rememberSaveable { mutableStateOf<String?>(null) }
 
-    if (!isLoggedIn) {
-        LoginScreen(onLoginSuccess = { isLoggedIn = true })
+    LaunchedEffect(Unit) {
+        val persistedToken = SessionManager.hydrateTokenFromStorage()
+        if (persistedToken.isNullOrBlank()) {
+            authState = AuthState.LoggedOut
+            return@LaunchedEffect
+        }
+
+        try {
+            api.getMyCourses()
+            if (SessionManager.token == persistedToken) {
+                authState = AuthState.LoggedIn
+            }
+        } catch (e: HttpException) {
+            if (SessionManager.token == persistedToken) {
+                SessionManager.clearSession()
+                authState = AuthState.LoggedOut
+            }
+        } catch (_: Exception) {
+            if (SessionManager.token == persistedToken) {
+                authState = AuthState.LoggedOut
+            }
+        }
+    }
+
+    if (authState != AuthState.LoggedIn) {
+        LoginScreen(onLoginSuccess = { authState = AuthState.LoggedIn })
     } else {
         val cs = MaterialTheme.colorScheme
 
@@ -159,6 +188,11 @@ fun PointyApp(scanViewModel: ScanViewModel) {
             }
         }
     }
+}
+
+enum class AuthState {
+    LoggedOut,
+    LoggedIn
 }
 
 // ─── Bottom Bar ───────────────────────────────────────────────────────────────

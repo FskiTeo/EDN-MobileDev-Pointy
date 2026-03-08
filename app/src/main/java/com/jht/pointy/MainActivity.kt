@@ -139,7 +139,8 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                         val courseId = selectedCourseId
                         if (courseId == null) {
                             DashboardScreen(
-                                onCourseClick = { id -> selectedCourseId = id }
+                                onCourseClick = { id -> selectedCourseId = id },
+                                onProfileClick = { currentDestination = AppDestinations.PROFIL }
                             )
                         } else {
                             AttendanceScreen(

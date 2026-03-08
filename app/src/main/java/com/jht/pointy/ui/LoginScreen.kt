@@ -153,7 +153,7 @@ fun LoginScreen(
                     .height(54.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor         = cs.onBackground,
+                    containerColor         = cs.primary,
                     disabledContainerColor = cs.outline
                 ),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
@@ -174,7 +174,7 @@ fun LoginScreen(
                             text = "Continuer →",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isEnabled) cs.background else cs.onSurfaceVariant,
+                            color = if (isEnabled) cs.onPrimary else cs.onSurfaceVariant,
                             letterSpacing = 0.3.sp
                         )
                     }

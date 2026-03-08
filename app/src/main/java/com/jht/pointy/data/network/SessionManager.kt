@@ -44,6 +44,16 @@ object SessionManager {
         return persistedToken
     }
 
+    fun updateTeacherIdentity(
+        teacherId: String,
+        teacherFirstName: String,
+        teacherLastName: String
+    ) {
+        this.teacherId = teacherId
+        this.teacherFirstName = teacherFirstName
+        this.teacherLastName = teacherLastName
+    }
+
     suspend fun clearSession() {
         token = null
         teacherId = null

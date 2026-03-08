@@ -48,6 +48,12 @@ class AuthStateViewModel : ViewModel() {
             try {
                 api.getMyCourses()
                 if (SessionManager.token == persistedToken) {
+                    val teacher = api.getMe()
+                    SessionManager.updateTeacherIdentity(
+                        teacherId = teacher.id,
+                        teacherFirstName = teacher.firstName,
+                        teacherLastName = teacher.lastName
+                    )
                     _authState.value = AuthUiState.LoggedIn
                 }
             } catch (_: HttpException) {

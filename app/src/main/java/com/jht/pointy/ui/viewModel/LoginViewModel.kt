@@ -23,10 +23,12 @@ class LoginViewModel : ViewModel() {
             _uiState.value = LoginState.Loading
             try {
                 val response = api.login(LoginRequest(email, password))
-                SessionManager.token     = response.token
-                SessionManager.teacherId = response.teacher.id
-                SessionManager.teacherFirstName = response.teacher.firstName
-                SessionManager.teacherLastName = response.teacher.lastName
+                SessionManager.setSession(
+                    token = response.token,
+                    teacherId = response.teacher.id,
+                    teacherFirstName = response.teacher.firstName,
+                    teacherLastName = response.teacher.lastName
+                )
                 _uiState.value = LoginState.Success
             } catch (e: retrofit2.HttpException) {
                 val message = e.response()?.errorBody()?.string() ?: "Identifiants incorrects"

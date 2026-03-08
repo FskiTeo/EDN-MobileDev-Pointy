@@ -25,7 +25,8 @@ import com.jht.pointy.ui.viewModel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(),
+    onLogoutClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val cs = MaterialTheme.colorScheme
@@ -77,7 +78,10 @@ fun ProfileScreen(
                     }
                 }
                 is ProfileState.Success -> {
-                    ProfileContent(teacher = state.teacher)
+                    ProfileContent(
+                        teacher = state.teacher,
+                        onLogoutClick = onLogoutClick
+                    )
                 }
             }
         }
@@ -85,7 +89,10 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileContent(teacher: Teacher) {
+private fun ProfileContent(
+    teacher: Teacher,
+    onLogoutClick: () -> Unit
+) {
     val cs = MaterialTheme.colorScheme
 
     Column(
@@ -138,6 +145,21 @@ private fun ProfileContent(teacher: Teacher) {
         Spacer(Modifier.height(12.dp))
 
         InfoRow(icon = Icons.Default.Email, label = "Email", value = teacher.email)
+
+        Spacer(Modifier.height(28.dp))
+
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = cs.error)
+        ) {
+            Text(
+                text = "Se déconnecter",
+                color = cs.onError,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

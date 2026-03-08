@@ -8,6 +8,7 @@ import com.jht.pointy.data.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 class ScanViewModel : ViewModel() {
     private val api = RetrofitClient.instance.create(ApiService::class.java)
@@ -60,6 +61,9 @@ class ScanViewModel : ViewModel() {
                     )
                 )
                 _submitMessage.value = "Présence enregistrée"
+            } catch (_: HttpException) {
+                AuthStateViewModel.notifyHttpError()
+                _submitMessage.value = "Session expirée, reconnectez-vous"
             } catch (_: Exception) {
                 _submitMessage.value = "Échec de l'enregistrement de la présence"
             } finally {

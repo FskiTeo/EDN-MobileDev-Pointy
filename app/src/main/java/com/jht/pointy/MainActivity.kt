@@ -48,7 +48,10 @@ import com.jht.pointy.ui.ScanScreen
 import com.jht.pointy.ui.AttendanceScreen
 import com.jht.pointy.ui.DashboardScreen
 import com.jht.pointy.ui.theme.PointyTheme
+import com.jht.pointy.ui.viewModel.AuthStateViewModel
+import com.jht.pointy.ui.viewModel.AuthUiState
 import com.jht.pointy.ui.viewModel.ScanViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
@@ -106,12 +109,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PointyApp(scanViewModel: ScanViewModel) {
-    var isLoggedIn         by rememberSaveable { mutableStateOf(false) }
+    val authViewModel: AuthStateViewModel = viewModel()
+    val authState by authViewModel.authState.collectAsState()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.COURS) }
     var selectedCourseId   by rememberSaveable { mutableStateOf<String?>(null) }
 
-    if (!isLoggedIn) {
-        LoginScreen(onLoginSuccess = { isLoggedIn = true })
+    LaunchedEffect(Unit) {
+        authViewModel.bootstrapSession()
+    }
+
+    if (authState != AuthUiState.LoggedIn) {
+        LoginScreen(onLoginSuccess = { authViewModel.onLoginSuccess() })
     } else {
         val cs = MaterialTheme.colorScheme
 
@@ -154,7 +162,14 @@ fun PointyApp(scanViewModel: ScanViewModel) {
                         }
                     }
                     AppDestinations.ELEVES -> ScanScreen(viewModel = scanViewModel)
-                    AppDestinations.PROFIL -> ProfileScreen()
+                    AppDestinations.PROFIL -> ProfileScreen(
+                        onLogoutClick = {
+                            authViewModel.logout()
+                            currentDestination = AppDestinations.COURS
+                            selectedCourseId = null
+                            scanViewModel.stopAttendanceScan()
+                        }
+                    )
                 }
             }
         }

@@ -1,7 +1,9 @@
 package com.jht.pointy.ui
 
+import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,12 +11,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,15 +41,32 @@ fun ScanScreen(viewModel: ScanViewModel) {
         }
     }
 
-    val pulse = rememberInfiniteTransition(label = "pulse")
-    val ringScale by pulse.animateFloat(
-        initialValue = 1f,
-        targetValue  = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(1200, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "ringScale"
+    val infiniteTransition = rememberInfiniteTransition(label = "radar")
+
+    val wave1Scale by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(tween(2000, easing = LinearOutSlowInEasing), RepeatMode.Restart),
+        label = "wave1Scale"
+    )
+    val wave1Alpha by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(2000, easing = LinearOutSlowInEasing), RepeatMode.Restart),
+        label = "wave1Alpha"
+    )
+
+    val wave2Scale by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(tween(2000, delayMillis = 1000, easing = LinearOutSlowInEasing), RepeatMode.Restart),
+        label = "wave2Scale"
+    )
+    val wave2Alpha by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(2000, delayMillis = 1000, easing = LinearOutSlowInEasing), RepeatMode.Restart),
+        label = "wave2Alpha"
     )
 
     Box(
@@ -55,153 +76,144 @@ fun ScanScreen(viewModel: ScanViewModel) {
         contentAlignment = Alignment.Center
     ) {
         if (activeCourseId == null && scannedUid == null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(32.dp)
-                ) {
-                    Text(
-                        text = "Aucun cours sélectionné",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = cs.onBackground
-                    )
-                    Text(
-                        text = "Sélectionnez un cours depuis l'onglet Cours pour démarrer le scan de présence",
-                        fontSize = 14.sp,
-                        color = cs.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            return
+            EmptyScanState()
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
             ) {
 
                 if (activeCourseId != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = activeCourseName?.let { "Cours : $it" } ?: "Mode présence cours actif",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Black,
-                        color = cs.primary,
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = cs.primary.copy(alpha = 0.1f),
+                        modifier = Modifier.padding(bottom = 64.dp)
+                    ) {
+                        Text(
+                            text = activeCourseName ?: "Mode présence",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = cs.primary,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
                 }
 
-                Spacer(Modifier.height(72.dp))
-
-                AnimatedContent(
-                    targetState = scannedUid != null,
-                    transitionSpec = {
-                        fadeIn(tween(400)) + scaleIn(tween(400), initialScale = 0.85f) togetherWith
-                                fadeOut(tween(200))
-                    },
-                    label = "iconState"
-                ) { isScanned ->
-                    if (isScanned) {
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .background(cs.primary.copy(alpha = 0.08f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Succès",
-                                modifier = Modifier.size(56.dp),
-                                tint = cs.primary
-                            )
-                        }
-                    } else {
-                        Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.size(240.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedContent(
+                        targetState = scannedUid != null,
+                        transitionSpec = {
+                            val enterAnim = fadeIn(tween(400)) + scaleIn(tween(400, easing = OvershootInterpolator().toEasing()))
+                            val exitAnim = fadeOut(tween(200))
+                            enterAnim.togetherWith(exitAnim)
+                        },
+                        label = "iconState"
+                    ) { isScanned ->
+                        if (isScanned) {
                             Box(
                                 modifier = Modifier
-                                    .size(120.dp)
-                                    .scale(ringScale)
-                                    .border(
-                                        width = 1.dp,
-                                        color = cs.primary.copy(alpha = 0.2f),
-                                        shape = CircleShape
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(96.dp)
-                                    .background(cs.primary.copy(alpha = 0.06f), CircleShape),
+                                    .size(140.dp)
+                                    .background(Color(0xFF4CAF50).copy(alpha = 0.15f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "En attente NFC",
-                                    modifier = Modifier.size(40.dp),
-                                    tint = cs.primary
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Succès",
+                                    modifier = Modifier.size(72.dp),
+                                    tint = Color(0xFF4CAF50)
                                 )
+                            }
+                        } else {
+                            Box(contentAlignment = Alignment.Center) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .scale(wave1Scale)
+                                        .border(2.dp, cs.primary.copy(alpha = wave1Alpha), CircleShape)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .scale(wave2Scale)
+                                        .border(2.dp, cs.primary.copy(alpha = wave2Alpha), CircleShape)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .background(cs.primary.copy(alpha = 0.1f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PhoneAndroid,
+                                        contentDescription = "En attente de carte",
+                                        modifier = Modifier.size(48.dp),
+                                        tint = cs.primary
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(40.dp))
 
                 AnimatedContent(
                     targetState = scannedUid != null,
-                    transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(200)) },
+                    transitionSpec = {
+                        fadeIn(tween(300)).togetherWith(fadeOut(tween(200))) // CORRECTION ICI
+                    },
                     label = "title"
                 ) { isScanned ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = if (isScanned) "Étudiant détecté" else "Prêt à scanner",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Black,
-                            color = cs.onBackground,
-                            letterSpacing = (-0.5).sp
+                            text = if (isScanned) "Étudiant pointé !" else "Prêt à scanner",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-0.5).sp
+                            ),
+                            color = if (isScanned) Color(0xFF4CAF50) else cs.onBackground
                         )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = when {
-                                isScanned && activeCourseId != null && isSubmitting -> "Enregistrement de la présence..."
-                                isScanned && activeCourseId != null -> submitMessage
-                                    ?: "Scan NFC réussi"
+                        Spacer(Modifier.height(8.dp))
 
-                                isScanned -> "Scan NFC réussi"
-                                else -> "Approchez une carte NFC"
-                            },
-                            fontSize = 14.sp,
+                        val statusText = when {
+                            isScanned && isSubmitting -> "Enregistrement en cours..."
+                            isScanned -> submitMessage ?: "Présence validée."
+                            else -> "Approchez une carte au dos de l'appareil."
+                        }
+
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = cs.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Normal
+                            modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }
                 }
 
+                Spacer(Modifier.height(24.dp))
+
                 AnimatedVisibility(
                     visible = scannedUid != null,
-                    enter = fadeIn(tween(400)) + expandVertically(tween(400)),
+                    enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically()
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(Modifier.height(20.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(cs.surface, RoundedCornerShape(8.dp))
-                                .border(1.dp, cs.outline.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 20.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = "ID : $scannedUid",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = cs.onSurfaceVariant,
-                                letterSpacing = 0.5.sp
-                            )
-                        }
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = cs.surface,
+                        border = BorderStroke(1.dp, cs.outline.copy(alpha = 0.2f))
+                    ) {
+                        Text(
+                            text = "UID: $scannedUid",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = cs.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            letterSpacing = 1.sp
+                        )
                     }
                 }
 
@@ -210,30 +222,68 @@ fun ScanScreen(viewModel: ScanViewModel) {
                 AnimatedVisibility(
                     visible = scannedUid != null,
                     enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { it / 2 },
-                    exit = fadeOut() + slideOutVertically { it / 2 }
+                    exit = fadeOut()
                 ) {
                     Button(
                         onClick = { viewModel.resetScan() },
                         modifier = Modifier
-                            .padding(horizontal = 32.dp)
                             .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = cs.onBackground
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(0.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = cs.onBackground)
                     ) {
                         Text(
-                            text = "Scanner un autre élève",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = cs.background,
-                            letterSpacing = 0.3.sp
+                            text = "SCAN SUIVANT",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = cs.background
                         )
                     }
                 }
             }
         }
+    }
+}
+
+fun android.view.animation.Interpolator.toEasing() = Easing { fraction ->
+    this.getInterpolation(fraction)
+}
+
+@Composable
+fun EmptyScanState() {
+    val cs = MaterialTheme.colorScheme
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(32.dp).fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(cs.surfaceVariant, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = cs.onSurfaceVariant
+            )
+        }
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "Aucun cours actif",
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = cs.onBackground
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Allez dans l'onglet 'Cours', sélectionnez un cours et appuyez sur 'Démarrer le scan'.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = cs.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }

@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DashboardTopBar() {
+private fun DashboardTopBar(onProfileClick: () -> Unit = {}) {
     val cs = MaterialTheme.colorScheme
 
     val greeting = when (java.time.LocalTime.now().hour) {
@@ -62,7 +62,8 @@ private fun DashboardTopBar() {
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(36.dp)
-                    .background(cs.primary, CircleShape),
+                    .background(cs.primary, CircleShape)
+                    .clickable { onProfileClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -81,12 +82,13 @@ private fun DashboardTopBar() {
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = viewModel(),
-    onCourseClick: (String) -> Unit = {}
+    onCourseClick: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column {
-        DashboardTopBar()
+        DashboardTopBar(onProfileClick = onProfileClick)
         when (val state = uiState) {
             is DashboardUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -158,7 +158,12 @@ fun AttendanceScreen(
                             firstName = student.firstName,
                             lastName = student.lastName,
                             attendance = student.attendance,
-                            isUpdating = isUpdating
+                            isUpdating = isUpdating,
+                            onClick = {
+                                if (!isUpdating) {
+                                    viewModel.rotateAttendance(courseId, student)
+                                }
+                            }
                         )
                     }
                 }
@@ -172,11 +177,13 @@ fun StudentCard(
     firstName: String,
     lastName: String,
     attendance: String,
-    isUpdating: Boolean
+    isUpdating: Boolean,
+    onClick: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
 
     Surface(
+        onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         color = cs.surface,
         border = BorderStroke(0.5.dp, cs.outline.copy(alpha = 0.15f)),
@@ -198,7 +205,7 @@ fun StudentCard(
 
                 if (isUpdating) {
                     Text(
-                        text = "Scan en cours...",
+                        text = "Mise a jour...",
                         style = MaterialTheme.typography.labelSmall,
                         color = cs.primary,
                         modifier = Modifier.padding(top = 4.dp)

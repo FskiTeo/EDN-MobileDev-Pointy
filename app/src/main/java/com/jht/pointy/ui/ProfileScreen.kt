@@ -155,7 +155,7 @@ private fun ProfileContent(
             colors = ButtonDefaults.buttonColors(containerColor = cs.error)
         ) {
             Text(
-                text = "Se deconnecter",
+                text = "Se déconnecter",
                 color = cs.onError,
                 fontWeight = FontWeight.Bold
             )
